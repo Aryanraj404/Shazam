@@ -1,21 +1,10 @@
 import pyaudio
 import wave
-import numpy
-import cmath
-import numpy.fft as fft
-import pickle
-from scipy.signal import butter, lfilter, freqz, fftconvolve, resample_poly
 
-
-
-
-def RecordAudio(
-    outputFile,
-    recordSeconds=5
-):
+def RecordAudio(outputFile,recordSeconds=5):
 
     FORMAT = pyaudio.paInt16
-    CHANNELS = 1
+    CHANNELS = 1 #means mono 
     RATE = 44100
     CHUNK = 1024
 
@@ -33,10 +22,7 @@ def RecordAudio(
 
     frames = []
     print("Recording Started...")
-    for i in range(
-        0,
-        int(RATE / CHUNK * recordSeconds)
-    ):
+    for i in range(0,int(RATE / CHUNK * recordSeconds)):
 
         data = stream.read(CHUNK,exception_on_overflow=False)
 
@@ -49,21 +35,14 @@ def RecordAudio(
 
     audio.terminate()
 
-    waveFile = wave.open(
-        outputFile,
-        'wb'
-    )
+    waveFile = wave.open(outputFile,'wb')
 
     waveFile.setnchannels(CHANNELS)
 
-    waveFile.setsampwidth(
-        audio.get_sample_size(FORMAT)
-    )
+    waveFile.setsampwidth(audio.get_sample_size(FORMAT))
 
     waveFile.setframerate(RATE)
 
-    waveFile.writeframes(
-        b''.join(frames)
-    )
+    waveFile.writeframes( b''.join(frames))
 
     waveFile.close()

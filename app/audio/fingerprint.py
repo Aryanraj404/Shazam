@@ -105,8 +105,7 @@ def GenerateHashes(constellationMap, targetzone = 5):
                 continue
             deltaTime = (targetTime-anchorTime)
 
-            hashValue = (anchorfreq,targetFreq,deltaTime)
-
+            hashValue = (f"{anchorfreq}|{targetFreq}|{deltaTime}")
             hashes.append((hashValue,anchorTime))
 
     return hashes

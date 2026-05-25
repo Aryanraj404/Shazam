@@ -1,125 +1,41 @@
-import os
+from fastapi import FastAPI
 
-from app.audio.fingerprint import *
 from app.audio.recorder import *
+
 from app.database.db import *
+
 from app.matching.matcher import *
 
 
-DATABASE_FILE = "fingerprintDatabase.pkl"
+app = FastAPI()
+
+connection = ConnectToDatabase()
 
 
-# =========================
-# LOAD OR BUILD DATABASE
-# =========================
+@app.get("/")
+def home():
 
-if os.path.exists(DATABASE_FILE):
+    return {
+        "message": "Shazam Clone Backend Running"
+    }
 
-    database = LoadDatabase(
-        DATABASE_FILE
+
+@app.post("/identify")
+def identify_song():
+
+    RecordAudio(
+        "query/query.wav",
+        8
     )
 
-else:
-
-    print("\nBuilding Fingerprint Database...\n")
-
-    database = {}
-
-    songsFolder = "songs"
-
-    for songFile in os.listdir(songsFolder):
-
-        if not songFile.endswith(".wav"):
-            continue
-
-        songPath = (
-            songsFolder
-            +
-            "/"
-            +
-            songFile
-        )
-
-        print(
-            f"Processing {songFile}..."
-        )
-
-        constellationMap = (
-            GenerateConstellationMap(
-                songPath
-            )
-        )
-
-        hashes = GenerateHashes(
-            constellationMap
-        )
-
-        database = StoreHashes(
-            hashes,
-            songFile,
-            database
-        )
-
-        print(
-            f"{songFile} -> {len(hashes)} hashes"
-        )
-
-    SaveDatabase(
-        database,
-        DATABASE_FILE
-    )
-
-    print("\nDatabase Ready")
-
-
-# =========================
-# RECORD QUERY AUDIO
-# =========================
-
-RecordAudio(
-    "query/query.wav",
-    8
-)
-
-
-# =========================
-# GENERATE QUERY HASHES
-# =========================
-
-queryConstellation = (
-    GenerateConstellationMap(
+    bestSong, bestCount = IdentifySong(
+        connection,
         "query/query.wav"
     )
-)
 
-queryHashes = GenerateHashes(
-    queryConstellation
-)
+    return {
 
+        "detected_song": bestSong,
 
-# =========================
-# MATCH AGAINST DATABASE
-# =========================
-
-offsetCounts = MatchHashes(
-    queryHashes,
-    database
-)
-
-
-# =========================
-# BEST MATCH
-# =========================
-
-bestSong, bestCount = BestMatch(
-    offsetCounts
-)
-
-
-print("\n====================")
-print("Detected Song:")
-print(bestSong)
-
-print("\nMatch Score:")
-print(bestCount)
-print("====================\n")
+        "match_score": bestCount
+    }
