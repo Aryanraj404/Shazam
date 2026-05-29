@@ -1,3 +1,10 @@
 venv/
 __pycache__/
 *.pyc
+
+query/query.wav
+query/query.webm
+
+node_modules/
+
+.env

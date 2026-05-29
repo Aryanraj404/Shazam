@@ -58,3 +58,27 @@ def InsertFingerprints(
     connection.commit()
 
     cursor.close()
+
+def SongExists(
+    connection,
+    songName
+):
+
+    cursor = connection.cursor()
+
+    query = """
+    SELECT id
+    FROM songs
+    WHERE song_name = %s
+    """
+
+    cursor.execute(
+        query,
+        (songName,)
+    )
+
+    result = cursor.fetchone()
+
+    cursor.close()
+
+    return result
