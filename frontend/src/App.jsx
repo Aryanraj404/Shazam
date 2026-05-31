@@ -1,38 +1,68 @@
 import { useState } from "react"
 import Waveform from "./waveform"
-
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
 function App() {
 
   const [song, setSong] = useState("")
   const [loading, setLoading] = useState(false)
   const [score, setScore] = useState(0)
-
+  const [error, setError] = useState("") 
   const [selectedFile, setSelectedFile] = useState(null)
   const [uploadMessage, setUploadMessage] = useState("")
   const [uploading, setUploading] = useState(false)
 
-  async function identifySong() {
+    async function identifySong() {
 
     setLoading(true)
     setSong("")
     setScore(0)
+    setError("")
 
-    const response = await fetch(
-      "http://127.0.0.1:8000/identify",
-      {
-        method: "POST"
+    // 1. Ask browser for mic permission
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+    // 2. Record for 8 seconds
+    const recorder = new MediaRecorder(stream)
+    const chunks = []
+
+    recorder.ondataavailable = (e) => chunks.push(e.data)
+
+    recorder.onstop = async () => {
+      // 3. Stop all mic tracks
+      stream.getTracks().forEach(t => t.stop())
+
+      // 4. Build a .wav blob and send it to /identify
+      const blob = new Blob(chunks, { type: "audio/wav" })
+      const formData = new FormData()
+      formData.append("audio", blob, "query.wav")
+
+      try {
+        const response = await fetch(`${API_URL}/identify`, {
+          method: "POST",
+          body: formData
+        })
+
+        const data = await response.json()
+        console.log(data)
+
+        if (data.detected_song === "No match found") {
+          setError("❌ No match found. Try again!")
+        } else {
+          setSong(data.detected_song)
+          setScore(data.match_score)
+        }
+      } catch (err) {
+        setError("❌ Server error. Is the backend running?")
       }
-    )
 
-    const data = await response.json()
+      setLoading(false)
+    }
 
-    console.log(data)
+    // 5. Start recording, stop after 8 seconds
+    recorder.start()
+    setTimeout(() => recorder.stop(), 10000)
+    }
 
-    setSong(data.detected_song)
-    setScore(data.match_score)
-
-    setLoading(false)
-  }
 
   async function addSong() {
 
@@ -215,6 +245,18 @@ function App() {
       {
         loading &&
         <Waveform />
+      }
+       {/* ← add this */}
+      {error &&
+        <div style={{
+          marginTop: "1rem",
+          padding: "1rem",
+          backgroundColor: "#7f1d1d",
+          borderRadius: "12px",
+          color: "white"
+        }}>
+          {error}
+        </div>
       }
 
       {

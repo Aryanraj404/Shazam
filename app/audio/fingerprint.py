@@ -87,25 +87,19 @@ def GenerateConstellationMap(filename):
     )
     return constellationMap
 
-def GenerateHashes(constellationMap, targetzone = 5):
+def GenerateHashes(constellationMap, fanOut=15, timeDelta=200):
     hashes = []
-
-    for i in range(len(constellationMap)):
-        anchorTime, anchorfreq = (constellationMap[i])
-
-        for j in range(1,targetzone):
-
-            if i + j >= len(constellationMap):
+    for i, (anchorTime, anchorFreq) in enumerate(constellationMap):
+        count = 0
+        for j in range(1, len(constellationMap) - i):
+            if count >= fanOut:
                 break
-
-            targetTime, targetFreq = (
-                constellationMap[i+j]
-            )
-            if(targetTime == anchorTime):
+            targetTime, targetFreq = constellationMap[i + j]
+            if targetTime - anchorTime > timeDelta:
+                break
+            if targetTime == anchorTime:
                 continue
-            deltaTime = (targetTime-anchorTime)
-
-            hashValue = (f"{anchorfreq}|{targetFreq}|{deltaTime}")
-            hashes.append((hashValue,anchorTime))
-
+            deltaTime = targetTime - anchorTime
+            hashes.append((f"{anchorFreq}|{targetFreq}|{deltaTime}", anchorTime))
+            count += 1
     return hashes

@@ -34,8 +34,8 @@ def FourierAcrossWindows(windowedData):
     transformedData = []
 
     for window in windowedData:
-        fftData = FastFourierTransform(window,len(window))
-        #fftData = numpy.fft.fft(window)
+        #fftData = FastFourierTransform(window,len(window))
+        fftData = numpy.fft.fft(window)
         fftmagnitude = numpy.abs(fftData)
 
         transformedData.append(fftmagnitude)

@@ -99,22 +99,16 @@ def BestMatch(connection,offsetCounts):
 
     return bestSongName, bestCount
 
-def IdentifySong(connection,queryFile):
-
-    # Generate constellation map
-    queryConstellation = (
-        GenerateConstellationMap(
-            queryFile
-        )
-    )
-
-    # Generate hashes
+def IdentifySong(connection, queryFile):
+    queryConstellation = GenerateConstellationMap(queryFile)
     queryHashes = GenerateHashes(queryConstellation)
-
-    # Match hashes
-    offsetCounts = MatchHashes(connection,queryHashes)
-
-    # Best match
-    bestSong, bestCount = BestMatch( connection, offsetCounts)
-
+    
+    print(f"Query hashes: {len(queryHashes)}")  # already have this
+    
+    offsetCounts = MatchHashes(connection, queryHashes)
+    
+    print(f"Total offset buckets: {len(offsetCounts)}")  # ← add this
+    print(f"Top 5 matches: {sorted(offsetCounts.items(), key=lambda x: x[1], reverse=True)[:5]}")  # ← and this
+    
+    bestSong, bestCount = BestMatch(connection, offsetCounts)
     return bestSong, bestCount

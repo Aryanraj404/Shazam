@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.audio.recorder import *
-
+from pydub import AudioSegment
 from app.database.db import *
 
 from app.matching.matcher import *
 from fastapi import UploadFile, File
-import os
+import uuid, os
 
 app = FastAPI()
 app.add_middleware(
@@ -29,24 +29,30 @@ def home():
 
 
 @app.post("/identify")
-def identify_song():
+async def identify_song(audio: UploadFile = File(...)):
+    uid = uuid.uuid4().hex
+    rawPath = f"query/query_{uid}.webm"
+    wavPath = f"query/query_{uid}.wav"
 
-    RecordAudio(
-        "query/query.wav",
-        8
-    )
+    with open(rawPath, "wb") as f:
+        f.write(await audio.read())
 
-    bestSong, bestCount = IdentifySong(
-        connection,
-        "query/query.wav"
-    )
+    try:
+        # Force 44100 Hz mono before fingerprinting
+        sound = AudioSegment.from_file(rawPath)
+        sound = sound.set_frame_rate(44100).set_channels(1)
+        sound.export(wavPath, format="wav")
 
-    return {
+        bestSong, bestCount = IdentifySong(connection, wavPath)
 
-        "detected_song": bestSong,
+        if not bestSong or bestCount < 20:
+            return {"detected_song": "No match found", "match_score": bestCount}
 
-        "match_score": bestCount
-    }
+        return {"detected_song": bestSong, "match_score": bestCount}
+
+    finally:
+        if os.path.exists(rawPath): os.remove(rawPath)
+        if os.path.exists(wavPath): os.remove(wavPath)
 @app.post("/add-song")
 async def add_song(
     song: UploadFile = File(...)
