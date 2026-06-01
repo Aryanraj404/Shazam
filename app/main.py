@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.audio.recorder import *
+#from app.audio.recorder import *
 from pydub import AudioSegment
 from app.database.db import *
 
