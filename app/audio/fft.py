@@ -1,4 +1,4 @@
-import pyaudio
+
 import wave
 import numpy
 import cmath
