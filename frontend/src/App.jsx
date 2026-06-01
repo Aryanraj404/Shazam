@@ -1,6 +1,7 @@
 import { useState } from "react"
 import Waveform from "./waveform"
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+
+const API_URL = "https://sonichash.onrender.com"
 function App() {
 
   const [song, setSong] = useState("")
