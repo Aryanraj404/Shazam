@@ -151,7 +151,7 @@ function App() {
 
   <input
     type="file"
-    accept=".wav"
+    accept=".wav, .mp3"
     onChange={(event) =>
       setSelectedFile(
         event.target.files[0]

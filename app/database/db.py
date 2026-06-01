@@ -1,16 +1,10 @@
 
 from scipy.signal import butter, lfilter, freqz, fftconvolve, resample_poly
 import psycopg2
-
+import os
 
 def ConnectToDatabase():
-
-    connection = psycopg2.connect(
-    host="localhost",
-    database="sonichash",
-    user ="aryan",
-    password = "aryanKr_05")
-    return connection
+    return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
 

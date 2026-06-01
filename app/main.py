@@ -54,56 +54,35 @@ async def identify_song(audio: UploadFile = File(...)):
         if os.path.exists(rawPath): os.remove(rawPath)
         if os.path.exists(wavPath): os.remove(wavPath)
 @app.post("/add-song")
-async def add_song(
-    song: UploadFile = File(...)
-):
-
+async def add_song(song: UploadFile = File(...)):
     connection.rollback()
 
-    if SongExists(
-        connection,
-        song.filename
-    ):
-        return {
-            "message": "⚠️ Song Already Exists"
-        }
+    if SongExists(connection, song.filename):
+        return {"message": "⚠️ Song Already Exists"}
 
-    songPath = os.path.join(
-        "songs",
-        song.filename
-    )
+    songPath = os.path.join("songs", song.filename)
 
-    with open(
-        songPath,
-        "wb"
-    ) as file:
-
+    with open(songPath, "wb") as file:
         content = await song.read()
         file.write(content)
 
-    songID = InsertSong(
-        connection,
-        song.filename
-    )
+    # Convert MP3 to WAV if needed
+    if song.filename.endswith(".mp3"):
+        wavPath = songPath.replace(".mp3", ".wav")
+        AudioSegment.from_file(songPath).set_frame_rate(44100).set_channels(1).export(wavPath, format="wav")
+        processPath = wavPath
+        songName = song.filename  # keep original name in DB
+    else:
+        processPath = songPath
+        songName = song.filename
 
-    constellationMap = (
-        GenerateConstellationMap(
-            songPath
-        )
-    )
-
-    hashes = GenerateHashes(
-        constellationMap
-    )
-
-    InsertFingerprints(
-        connection,
-        hashes,
-        songID
-    )
+    songID = InsertSong(connection, songName)
+    constellationMap = GenerateConstellationMap(processPath)
+    hashes = GenerateHashes(constellationMap)
+    InsertFingerprints(connection, hashes, songID)
 
     return {
-        "message": " Song Added Successfully",
-        "song": song.filename,
+        "message": "Song Added Successfully",
+        "song": songName,
         "hashes": len(hashes)
     }

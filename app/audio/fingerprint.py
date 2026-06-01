@@ -9,27 +9,23 @@ from app.audio.preprocessing import *
 from app.audio.fft import *
 
 
-def LocatePowerfulFrequencies(transformedData,frequencyBin):
+def LocatePowerfulFrequencies(transformedData, frequencyBin):
     powerfulfreq = []
-
     for spectrum in transformedData:
         currentwindow = []
-
-        for start in range(0,len(spectrum),frequencyBin):
-            band = spectrum[start:start+frequencyBin]
-
-            if(len(band) == 0):
+        for start in range(0, len(spectrum), frequencyBin):
+            band = spectrum[start:start + frequencyBin]
+            if len(band) == 0:
                 continue
             peakValue = numpy.max(band)
-            if peakValue < 1000:
-                continue
             strongestpeak = numpy.argmax(band)
-
-            strongestfreq = (start + strongestpeak)
-
-            currentwindow.append(strongestfreq)
-
-        powerfulfreq.append(currentwindow)
+            strongestfreq = start + strongestpeak
+            currentwindow.append((peakValue, strongestfreq))
+        
+        # Keep only top 3 peaks per window
+        currentwindow.sort(reverse=True)
+        top = [freq for _, freq in currentwindow[:3]]
+        powerfulfreq.append(top)
     return powerfulfreq
 
 def SeprateAndFlattenAudioData(powefulfreq):
@@ -87,7 +83,8 @@ def GenerateConstellationMap(filename):
     )
     return constellationMap
 
-def GenerateHashes(constellationMap, fanOut=15, timeDelta=200):
+# Reduce fan out and time window
+def GenerateHashes(constellationMap, fanOut=3, timeDelta=50):
     hashes = []
     for i, (anchorTime, anchorFreq) in enumerate(constellationMap):
         count = 0
