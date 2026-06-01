@@ -82,8 +82,7 @@ function App() {
       selectedFile
     )
 
-    const response = await fetch(
-      "http://127.0.0.1:8000/add-song",
+    const response = await fetch(`${API_URL}/add-song`,
       {
         method: "POST",
         body: formData
