@@ -1,7 +1,7 @@
 import { useState } from "react"
 import Waveform from "./waveform"
 
-const API_URL = "https://sonichash.onrender.com"
+const API_URL = "http://localhost:8000"
 function App() {
 
   const [song, setSong] = useState("")

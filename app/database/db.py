@@ -4,8 +4,13 @@ import psycopg2
 import os
 
 def ConnectToDatabase():
-    return psycopg2.connect(os.environ["DATABASE_URL"])
 
+    return psycopg2.connect(
+        host="localhost",
+        database="sonichash",
+        user="aryan",
+        password="aryanKr_05"
+    )
 
 
 def InsertSong(connection,songname):
